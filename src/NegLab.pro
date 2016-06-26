@@ -4,9 +4,9 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui charts
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
 TARGET = NegLab
 TEMPLATE = app
@@ -16,11 +16,13 @@ CONFIG += c++11
 SOURCES += main.cpp\
         mainwindow.cpp \
     invertcore.cpp \
-    filehandler.cpp
+    filehandler.cpp \
+    qcustomplot.cpp
 
 HEADERS  += mainwindow.h \
     invertcore.h \
-    filehandler.h
+    filehandler.h \
+    qcustomplot.h
 
 FORMS    += mainwindow.ui
 
