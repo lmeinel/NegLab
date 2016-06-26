@@ -156,14 +156,12 @@ void MainWindow::on_pushButton_Invert_clicked()
         QString pathNeg = QDir(dirPath).filePath(fileNeg);
         cv::Mat matNegFull = cv::imread(pathNeg.toUtf8().data(), CV_LOAD_IMAGE_ANYDEPTH);
 
-       int t = matNegFull.type();
-
         // create negative thumb
         cv::Mat matNegScaled; double scale = matNegFull.rows / 100.0;
         cv::resize(matNegFull, matNegScaled, cv::Size(matNegFull.cols / scale , 100), 0, 0, cv::INTER_NEAREST);
 
         // convert to Qimage
-        QImage thumbNeg = convertMat2QImage888(matNegScaled);
+        QImage thumbNeg = convertMat2QImage(matNegScaled);
 
         // add thumb to preview list
         QListWidgetItem *itmNeg = new QListWidgetItem(fileNeg);
@@ -179,7 +177,7 @@ void MainWindow::on_pushButton_Invert_clicked()
         cv::resize(matPosFull, matPosScaled, cv::Size(matPosFull.cols / scale , 100), 0, 0, cv::INTER_NEAREST);
 
         // convert to Qimage
-        QImage thumbPos = convertMat2QImage888(matPosScaled);
+        QImage thumbPos = convertMat2QImage(matPosScaled);
 
 
         // add thumb to preview list
@@ -214,26 +212,37 @@ void MainWindow::on_comboBox_Mode_currentTextChanged(const QString &arg1)
     }
 }
 
-QImage MainWindow::convertMat2QImage888(const cv::Mat &input)
+QImage MainWindow::convertMat2QImage(const cv::Mat &mat)
 {
-    cv::Mat img8UC1, img8UC3;
+    Q_ASSERT(mat.channels() == 1 || mat.channels() == 3);
+    Q_ASSERT(mat.depth() == CV_8U || mat.depth() == CV_16U);
 
-    // reduce bit depth to 8-bit
-    if(input.depth() != CV_8U)
+    if(mat.empty())
+        return QImage();
+
+    // set output format
+    QImage::Format format;
+    if(mat.channels() == 1)
     {
-        input.convertTo(img8UC1, CV_8UC1);
+        format = QImage::Format_Grayscale8;
     }
     else
     {
-        img8UC1 = input;
+        format = QImage::Format_RGB888;
     }
 
-    cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE );// Create a window for display.
-    cv::imshow( "Display window", input );
-    cv::waitKey(0);
+    cv::Mat mat8U;
 
-    // convert to 3 channels
-    cv::cvtColor(img8UC1, img8UC3, CV_GRAY2RGB);
+    // reduce bit depth to 8-bit
+    if (mat.depth() != CV_8U)
+    {
+        mat.convertTo(mat8U, CV_8UC(mat.channels()), mat.depth() == CV_16U ? 1/255.0 : 255.0);
+    }
+    else
+    {
+        mat8U = mat;
+    }
 
-    return QImage(img8UC3.data, img8UC3.cols, img8UC3.rows, img8UC3.step, QImage::Format_RGB888).copy();
+    QImage img(mat8U.data, mat8U.cols, mat8U.rows, static_cast<int>(mat8U.step), format);
+    return img.copy();
 }

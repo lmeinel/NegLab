@@ -38,7 +38,7 @@ private slots:
     void on_comboBox_Mode_currentTextChanged(const QString &arg1);
 
 private:
-    QImage convertMat2QImage888(const cv::Mat &input);
+    QImage convertMat2QImage(const cv::Mat &input);
 
     Ui::MainWindow  *ui;
     FileHandler     m_filehandler;
