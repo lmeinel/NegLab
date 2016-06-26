@@ -37,8 +37,17 @@ private slots:
 
     void on_comboBox_Mode_currentTextChanged(const QString &arg1);
 
+    void on_spinBox_NegHdVal_valueChanged(int arg1);
+
+    void on_spinBox_NegLdVal_valueChanged(int arg1);
+
+    void on_spinBox_PosWhiteVal_valueChanged(int arg1);
+
+    void on_spinBox_PosBlackVal_valueChanged(int arg1);
+
 private:
     QImage convertMat2QImage(const cv::Mat &input);
+    void updateToneCurve();
 
     Ui::MainWindow  *ui;
     FileHandler     m_filehandler;

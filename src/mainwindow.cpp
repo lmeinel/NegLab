@@ -24,6 +24,14 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // init inverter
     on_comboBox_Mode_currentTextChanged(ui->comboBox_Mode->currentText());
+    on_spinBox_NegHdVal_valueChanged(ui->spinBox_NegHdVal->value());
+    on_spinBox_NegLdVal_valueChanged(ui->spinBox_NegLdVal->value());
+    on_spinBox_PosBlackVal_valueChanged(ui->spinBox_PosBlackVal->value());
+    on_spinBox_PosWhiteVal_valueChanged(ui->spinBox_PosWhiteVal->value());
+    m_inverter.setType(CV_16UC1);
+
+    // init Tone Curve widget
+    updateToneCurve();
 }
 
 MainWindow::~MainWindow()
@@ -210,6 +218,8 @@ void MainWindow::on_comboBox_Mode_currentTextChanged(const QString &arg1)
     {
         m_inverter.setMode(TONE_CURVE);
     }
+
+    updateToneCurve();
 }
 
 QImage MainWindow::convertMat2QImage(const cv::Mat &mat)
@@ -245,4 +255,77 @@ QImage MainWindow::convertMat2QImage(const cv::Mat &mat)
 
     QImage img(mat8U.data, mat8U.cols, mat8U.rows, static_cast<int>(mat8U.step), format);
     return img.copy();
+}
+
+void MainWindow::updateToneCurve()
+{
+    // generate some data:
+    QVector<double> x0(101), y0(101); // initialize with entries 0..100
+    for (int i=0; i<101; ++i)
+    {
+      x0[i] = (65536.0 / 100.0) * i;
+      y0[i] = static_cast<double>(m_inverter.applyToneCurve(static_cast<int>(x0[i])));
+    }
+    // create graph and assign data to it:
+    ui->widget_ToneCurve->addGraph(ui->widget_ToneCurve->xAxis, ui->widget_ToneCurve->yAxis);
+    ui->widget_ToneCurve->graph(0)->setData(x0, y0);
+
+    // configure axis labels:
+    ui->widget_ToneCurve->xAxis->setLabel("Negative");
+    ui->widget_ToneCurve->yAxis->setLabel("Positive");
+
+    //configure axis ticks
+    QVector<double> ticks;
+    ticks << 0  << 1*65536/4-1 << 2*65536/4-1 << 3*65536/4-1 << 65535;
+    ui->widget_ToneCurve->xAxis->setAutoTicks(false);
+    ui->widget_ToneCurve->xAxis->setTickVector(ticks);
+    ui->widget_ToneCurve->yAxis->setAutoTicks(false);
+    ui->widget_ToneCurve->yAxis->setTickVector(ticks);
+
+    ui->widget_ToneCurve->xAxis->setTickLabelFont(QFont(QFont().family(), 6));
+    ui->widget_ToneCurve->yAxis->setTickLabelFont(QFont(QFont().family(), 6));
+    ui->widget_ToneCurve->xAxis->setTickLabelRotation(-45.0);
+    ui->widget_ToneCurve->yAxis->setTickLabelRotation(-45.0);
+
+    // set axes ranges, so we see all data:
+    ui->widget_ToneCurve->xAxis->setRange(0, 65536);
+    ui->widget_ToneCurve->yAxis->setRange(0, 65536);
+
+    // draw anchors
+    ui->widget_ToneCurve->addGraph(ui->widget_ToneCurve->xAxis, ui->widget_ToneCurve->yAxis);
+    ui->widget_ToneCurve->graph(1)->setPen(QColor(255, 0, 0, 255));
+    ui->widget_ToneCurve->graph(1)->setLineStyle(QCPGraph::lsNone);
+    ui->widget_ToneCurve->graph(1)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 8));
+    QVector<double> x1(2), y1(2);
+    x1[0] = ui->spinBox_NegHdVal->value();
+    x1[1] = ui->spinBox_NegLdVal->value();
+    y1[0] = ui->spinBox_PosWhiteVal->value();
+    y1[1] = ui->spinBox_PosBlackVal->value();
+    ui->widget_ToneCurve->graph(1)->setData(x1, y1);
+
+    ui->widget_ToneCurve->replot();
+}
+
+void MainWindow::on_spinBox_NegHdVal_valueChanged(int arg1)
+{
+    m_inverter.setNegHighDensity(arg1);
+    updateToneCurve();
+}
+
+void MainWindow::on_spinBox_NegLdVal_valueChanged(int arg1)
+{
+    m_inverter.setNegLowDensity(arg1);
+    updateToneCurve();
+}
+
+void MainWindow::on_spinBox_PosWhiteVal_valueChanged(int arg1)
+{
+    m_inverter.setPosWhite(arg1);
+    updateToneCurve();
+}
+
+void MainWindow::on_spinBox_PosBlackVal_valueChanged(int arg1)
+{
+    m_inverter.setPosBlack(arg1);
+    updateToneCurve();
 }
