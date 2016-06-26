@@ -41,6 +41,8 @@ cv::Mat InvertCore::invert(const cv::Mat& input)
 
 int InvertCore::updateLut()
 {
+    assert(m_type == CV_8UC1 || m_type == CV_16UC1);
+
     if (m_lut)
         delete[] m_lut;
 
@@ -50,7 +52,7 @@ int InvertCore::updateLut()
 
         for(uint16_t i = 0; i < 256; i++)
         {
-            m_lut[i] = 255 - i;
+            m_lut[i] = static_cast<uint16_t>(applyToneCurve(i));
         }
 
         return m_type;
@@ -59,9 +61,9 @@ int InvertCore::updateLut()
     {
         m_lut = new uint16_t[65536];
 
-        for(uint32_t i = 0; i < 65536; i++)
+        for(int i = 0; i < 65536; i++)
         {
-            m_lut[i] = static_cast<uint16_t>(65535 - i);
+            m_lut[i] = static_cast<uint16_t>(applyToneCurve(i));
         }
 
         return m_type;
@@ -88,6 +90,72 @@ int InvertCore::getType() const
 void InvertCore::setType(int type)
 {
     m_type = type;
+}
+
+int InvertCore::setNegHighDensity(int value)
+{
+    m_neghd = value;
+    return m_neghd;
+}
+
+int InvertCore::setNegLowDensity(int value)
+{
+    m_negld = value;
+    return m_negld;
+}
+
+int InvertCore::setPosWhite(int value)
+{
+    m_posw = value;
+    return m_posw;
+}
+
+int InvertCore::setPosBlack(int value)
+{
+    m_posb = value;
+    return m_posb;
+}
+
+int InvertCore::setNegHighDensity(const cv::Mat &sample, cv::Rect roi)
+{
+    cv::Scalar value = cv::mean(sample(roi));
+    m_neghd = static_cast<int>(value[0]);
+
+    return m_neghd;
+}
+
+int InvertCore::setNegLowDensity(const cv::Mat &sample, cv::Rect roi)
+{
+    cv::Scalar value = cv::mean(sample(roi));
+    m_negld = static_cast<int>(value[0]);
+
+    return m_negld;
+}
+
+int InvertCore::applyToneCurve(int input)
+{
+    assert(m_type == CV_8UC1 || m_type == CV_16UC1);
+
+    int output = static_cast<int>((static_cast<double>(m_posb - m_posw)/static_cast<double>(m_negld - m_neghd)) * static_cast<double>(input - m_neghd) + (m_posw));
+
+    if(m_type == CV_8UC1)
+    {
+        if(output < 0)
+            output = 0;
+
+        if(output > 255)
+            output = 255;
+    }
+    else
+    {
+        if(output < 0)
+            output = 0;
+
+        if(output > 65535)
+            output = 65535;
+    }
+
+    return output;
 }
 
 template <typename T>
