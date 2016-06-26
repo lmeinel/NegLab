@@ -153,7 +153,7 @@
            <item>
             <widget class="QLineEdit" name="lineEdit_PosPrefix">
              <property name="text">
-              <string>neg_</string>
+              <string>pos_</string>
              </property>
             </widget>
            </item>
@@ -228,12 +228,12 @@
             <widget class="QComboBox" name="comboBox_Mode">
              <item>
               <property name="text">
-               <string>Bitwise Not</string>
+               <string>Tone Curve</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>Tone Curve</string>
+               <string>Bitwise Not</string>
               </property>
              </item>
             </widget>
