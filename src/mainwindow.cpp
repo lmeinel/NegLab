@@ -30,6 +30,19 @@ MainWindow::MainWindow(QWidget *parent) :
     on_spinBox_PosWhiteVal_valueChanged(ui->spinBox_PosWhiteVal->value());
     m_inverter.setType(CV_16UC1);
 
+    // connect
+    connect(ui->spinBox_NegHdVal, SIGNAL(valueChanged(int)), ui->horizontalSlider_NegHdVal, SLOT(setValue(int)) );
+    connect(ui->horizontalSlider_NegHdVal, SIGNAL(valueChanged(int)), ui->spinBox_NegHdVal, SLOT(setValue(int)) );
+
+    connect(ui->spinBox_NegLdVal, SIGNAL(valueChanged(int)), ui->horizontalSlider_NegLdVal, SLOT(setValue(int)) );
+    connect(ui->horizontalSlider_NegLdVal, SIGNAL(valueChanged(int)), ui->spinBox_NegLdVal, SLOT(setValue(int)) );
+
+    connect(ui->spinBox_PosBlackVal, SIGNAL(valueChanged(int)), ui->horizontalSlider_PosBlackVal, SLOT(setValue(int)) );
+    connect(ui->horizontalSlider_PosBlackVal, SIGNAL(valueChanged(int)), ui->spinBox_PosBlackVal, SLOT(setValue(int)) );
+
+    connect(ui->spinBox_PosWhiteVal, SIGNAL(valueChanged(int)), ui->horizontalSlider_PosWhiteVal, SLOT(setValue(int)) );
+    connect(ui->horizontalSlider_PosWhiteVal, SIGNAL(valueChanged(int)), ui->spinBox_PosWhiteVal, SLOT(setValue(int)) );
+
     // init Tone Curve widget
     updateToneCurve();
 }
