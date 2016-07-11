@@ -45,6 +45,8 @@ private slots:
 
     void on_spinBox_PosBlackVal_valueChanged(int arg1);
 
+    void on_checkBox_syncPrevScrollbar_clicked(bool checked);
+
 private:
     QImage convertMat2QImage(const cv::Mat &input);
     void updateToneCurve();

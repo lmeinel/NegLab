@@ -43,6 +43,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->spinBox_PosWhiteVal, SIGNAL(valueChanged(int)), ui->horizontalSlider_PosWhiteVal, SLOT(setValue(int)) );
     connect(ui->horizontalSlider_PosWhiteVal, SIGNAL(valueChanged(int)), ui->spinBox_PosWhiteVal, SLOT(setValue(int)) );
 
+    on_checkBox_syncPrevScrollbar_clicked(ui->checkBox_syncPrevScrollbar->isChecked());
+
     // init Tone Curve widget
     updateToneCurve();
 }
@@ -341,4 +343,22 @@ void MainWindow::on_spinBox_PosBlackVal_valueChanged(int arg1)
 {
     m_inverter.setPosBlack(arg1);
     updateToneCurve();
+}
+
+void MainWindow::on_checkBox_syncPrevScrollbar_clicked(bool checked)
+{
+    if(checked)
+    {
+        connect(ui->listWidget_NegPreview->horizontalScrollBar(), SIGNAL(valueChanged(int)),
+                ui->listWidget_PosPreview->horizontalScrollBar(), SLOT(setValue(int)));
+        connect(ui->listWidget_PosPreview->horizontalScrollBar(), SIGNAL(valueChanged(int)),
+                ui->listWidget_NegPreview->horizontalScrollBar(), SLOT(setValue(int)));
+    }
+    else
+    {
+        disconnect(ui->listWidget_NegPreview->horizontalScrollBar(), SIGNAL(valueChanged(int)),
+                ui->listWidget_PosPreview->horizontalScrollBar(), SLOT(setValue(int)));
+        disconnect(ui->listWidget_PosPreview->horizontalScrollBar(), SIGNAL(valueChanged(int)),
+                ui->listWidget_NegPreview->horizontalScrollBar(), SLOT(setValue(int)));
+    }
 }
