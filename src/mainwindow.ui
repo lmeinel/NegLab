@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>949</width>
-    <height>713</height>
+    <height>736</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -442,7 +442,7 @@
             </widget>
            </item>
            <item row="1" column="1">
-            <widget class="QCheckBox" name="checkBox">
+            <widget class="QCheckBox" name="checkBox_saveResults">
              <property name="text">
               <string>Save Results</string>
              </property>

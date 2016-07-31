@@ -155,15 +155,19 @@ void MainWindow::on_pushButton_Invert_clicked()
     ui->listWidget_PosPreview->clear();
     qApp->processEvents();
 
-    // init file path
+    // init file paths
     QStringList files = m_filehandler.getFileList();
-    QString dirPath = m_filehandler.getInputPath();
+    QString dirNeg = m_filehandler.getInputPath();
+    QString dirPos = m_filehandler.getOutputPath();
+    if(!QDir(dirPos).exists())
+    {
+        QDir().mkdir(dirPos);
+    }
 
     // update statusBar
     QProgressBar *progressBar = new QProgressBar;
     progressBar->setMaximum(files.length());
     ui->statusBar->addPermanentWidget(progressBar, 0);
-    ui->statusBar->showMessage(QString("Inverting..."));
     progressBar->setValue(0);
     qApp->processEvents();
 
@@ -174,9 +178,11 @@ void MainWindow::on_pushButton_Invert_clicked()
     // INVERT
     for(int i=0; i<files.length(); i++)
     {
+        ui->statusBar->showMessage(QString("Inverting..."));
+
         // load image
         QString fileNeg = files.at(i);
-        QString pathNeg = QDir(dirPath).filePath(fileNeg);
+        QString pathNeg = QDir(dirNeg).filePath(fileNeg);
         cv::Mat matNegFull = cv::imread(pathNeg.toUtf8().data(), CV_LOAD_IMAGE_ANYDEPTH);
 
         // create negative thumb
@@ -211,6 +217,18 @@ void MainWindow::on_pushButton_Invert_clicked()
         ui->listWidget_PosPreview->addItem(itmPos);
         qApp->processEvents();
 
+        // save image
+        if(ui->checkBox_saveResults->isChecked())
+        {
+            ui->statusBar->showMessage(QString("Saving..."));
+
+            // filepath
+            QString pathPos = QDir(dirPos).filePath(filePos);
+
+            // write image using OpenCV
+            cv::imwrite(pathPos.toUtf8().data(), matPosFull);
+        }
+
         progressBar->setValue(i+1);
         qApp->processEvents();
     }
@@ -221,7 +239,7 @@ void MainWindow::on_pushButton_Invert_clicked()
 
     ui->pushButton_Invert->setEnabled(true);
 
-    }
+}
 
 void MainWindow::on_comboBox_Mode_currentTextChanged(const QString &arg1)
 {
