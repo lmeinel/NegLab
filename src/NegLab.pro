@@ -29,6 +29,8 @@ FORMS    += mainwindow.ui
 INCLUDEPATH += $$PWD/OpenCV/include
 INCLUDEPATH += $$PWD/OpenCV/include/opencv
 
+RC_ICONS = icon.ico
+
 CONFIG(debug, debug|release) {
     message("debug mode")
 
