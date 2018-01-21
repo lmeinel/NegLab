@@ -2,10 +2,13 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QListWidgetItem>
 
 #include <opencv2/opencv.hpp>
 
+#include "imagepreviewwindow.h"
 #include "filehandler.h"
+#include "imagecache.h"
 #include "invertcore.h"
 
 namespace Ui {
@@ -24,6 +27,10 @@ private slots:
     void on_pushButton_BrowseNeg_clicked();
 
     void on_pushButton_BrowsePos_clicked();
+
+    void on_lineEdit_NegPath_editingFinished();
+
+    void on_lineEdit_PosPath_editingFinished();
 
     void on_pushButton_Preview_clicked();
 
@@ -47,13 +54,19 @@ private slots:
 
     void on_checkBox_syncPrevScrollbar_clicked(bool checked);
 
+    void on_listWidget_NegPreview_itemDoubleClicked(QListWidgetItem *item);
+
 private:
     QImage convertMat2QImage(const cv::Mat &input);
     void updateToneCurve();
 
-    Ui::MainWindow  *ui;
-    FileHandler     m_filehandler;
-    InvertCore      m_inverter;
+    Ui::MainWindow      *ui;
+    ImagePreviewWindow  *ipwindow;
+    FileHandler         m_filehandler;
+    ImageCache          m_imagecache;
+    InvertCore          m_inverter;
+
+    bool                m_negativesReady;
 };
 
 #endif // MAINWINDOW_H

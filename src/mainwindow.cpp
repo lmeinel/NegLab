@@ -1,17 +1,22 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include <string>
+
 #include <QFileDialog>
 #include <QApplication>
 #include <QProgressBar>
 //#include <QDebug>
+
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    ipwindow(new ImagePreviewWindow),
+    m_negativesReady(false)
 {
     ui->setupUi(this);
 
@@ -74,6 +79,21 @@ void MainWindow::on_pushButton_BrowsePos_clicked()
     m_filehandler.setOutputPath(path);
 }
 
+void MainWindow::on_lineEdit_NegPath_editingFinished()
+{
+    QString path = ui->lineEdit_NegPath->text();
+    m_filehandler.setInputPath(path);
+    m_filehandler.analyzeDirectory();
+    m_filehandler.setOutputPath();
+}
+
+void MainWindow::on_lineEdit_PosPath_editingFinished()
+{
+    QString path = ui->lineEdit_PosPath->text();
+    m_filehandler.setOutputPath(path);
+}
+
+
 void MainWindow::on_pushButton_Preview_clicked()
 {
     // disable button
@@ -81,11 +101,16 @@ void MainWindow::on_pushButton_Preview_clicked()
 
     // clear list widget
     ui->listWidget_NegPreview->clear();
+    ui->listWidget_PosPreview->clear();
     qApp->processEvents();
+
+    // clear image cache
+    m_imagecache.clearCacheNegatives();
+    m_imagecache.clearCachePositives();
 
     // init file path
     QStringList files = m_filehandler.getFileList();
-    QString dirPath = m_filehandler.getInputPath();
+    QString dirNeg = m_filehandler.getInputPath();
 
     // update statusBar
     QProgressBar *progressBar = new QProgressBar;
@@ -95,24 +120,38 @@ void MainWindow::on_pushButton_Preview_clicked()
     progressBar->setValue(0);
     qApp->processEvents();
 
-    // load previews
+    // LOAD PREVIEWS
     for(int i=0; i<files.length(); i++)
     {
         // load image
-        QString file = files.at(i);
-        QString path = QDir(dirPath).filePath(file);
-        QImage image;
-        image.load(path);
-        QImage thumb = image.scaled(100, 100, Qt::KeepAspectRatio, Qt::FastTransformation);
+        QString fileNeg = files.at(i);
+        QString pathNeg = QDir(dirNeg).filePath(fileNeg);
+        cv::Mat matNegFull = cv::imread(pathNeg.toUtf8().data(), CV_LOAD_IMAGE_ANYDEPTH);
+
+        // create negative thumb
+        cv::Mat matNegScaled; double scale = matNegFull.rows / 100.0;
+        cv::resize(matNegFull, matNegScaled, cv::Size(matNegFull.cols / scale , 100), 0, 0, cv::INTER_NEAREST);
+
+        // store to image cache
+        m_imagecache.addNegative(matNegFull, matNegScaled);
+
+        // convert to Qimage
+        QImage thumbNeg = convertMat2QImage(matNegScaled);
 
         // add thumb to preview list
-        QListWidgetItem *itm = new QListWidgetItem(file);
-        //itm->setIcon(QIcon(path));
-        itm->setIcon(QPixmap::fromImage(thumb));
-        ui->listWidget_NegPreview->addItem(itm);
+        QListWidgetItem *itmNeg = new QListWidgetItem(fileNeg);
+        itmNeg->setIcon(QPixmap::fromImage(thumbNeg));
+        ui->listWidget_NegPreview->addItem(itmNeg);
+        qApp->processEvents();
 
         progressBar->setValue(i+1);
         qApp->processEvents();
+    }
+
+    // previews ready
+    if(files.length() > 0)
+    {
+        m_negativesReady = true;
     }
 
     // clear statusBar
@@ -148,12 +187,19 @@ void MainWindow::on_lineEdit_NegFilter_editingFinished()
 
 void MainWindow::on_pushButton_Invert_clicked()
 {
+    // disable button
     ui->pushButton_Invert->setEnabled(false);
 
     // clear list widget
-    ui->listWidget_NegPreview->clear();
+    if (!m_negativesReady)
+        ui->listWidget_NegPreview->clear();
     ui->listWidget_PosPreview->clear();
     qApp->processEvents();
+
+    // clear image cache
+    if (!m_negativesReady)
+        m_imagecache.clearCacheNegatives();
+    m_imagecache.clearCachePositives();
 
     // init file paths
     QStringList files = m_filehandler.getFileList();
@@ -183,11 +229,28 @@ void MainWindow::on_pushButton_Invert_clicked()
         // load image
         QString fileNeg = files.at(i);
         QString pathNeg = QDir(dirNeg).filePath(fileNeg);
-        cv::Mat matNegFull = cv::imread(pathNeg.toUtf8().data(), CV_LOAD_IMAGE_ANYDEPTH);
+        cv::Mat matNegFull; cv::Mat matNegScaled; double scale = 1.0;
 
-        // create negative thumb
-        cv::Mat matNegScaled; double scale = matNegFull.rows / 100.0;
-        cv::resize(matNegFull, matNegScaled, cv::Size(matNegFull.cols / scale , 100), 0, 0, cv::INTER_NEAREST);
+        //get images
+        if (!m_negativesReady)
+        {
+            // read full image
+            matNegFull = cv::imread(pathNeg.toUtf8().data(), CV_LOAD_IMAGE_ANYDEPTH);
+
+            // create negative thumb
+            scale = matNegFull.rows / 100.0;
+            cv::resize(matNegFull, matNegScaled, cv::Size(matNegFull.cols / scale , 100), 0, 0, cv::INTER_NEAREST);
+
+            // store to image cache
+            m_imagecache.addNegative(matNegFull, matNegScaled);
+        }
+        else
+        {
+            //read image from cache
+            matNegFull = m_imagecache.getNegativeFull(i);
+            scale = matNegFull.rows / 100.0;
+            matNegScaled = m_imagecache.getNegativeThumb(i);
+        }
 
         // convert to Qimage
         QImage thumbNeg = convertMat2QImage(matNegScaled);
@@ -204,6 +267,9 @@ void MainWindow::on_pushButton_Invert_clicked()
         // create negative thumb
         cv::Mat matPosScaled;
         cv::resize(matPosFull, matPosScaled, cv::Size(matPosFull.cols / scale , 100), 0, 0, cv::INTER_NEAREST);
+
+        // store to image cache
+        m_imagecache.addPositive(matPosFull, matPosScaled);
 
         // convert to Qimage
         QImage thumbPos = convertMat2QImage(matPosScaled);
@@ -379,4 +445,22 @@ void MainWindow::on_checkBox_syncPrevScrollbar_clicked(bool checked)
         disconnect(ui->listWidget_PosPreview->horizontalScrollBar(), SIGNAL(valueChanged(int)),
                 ui->listWidget_NegPreview->horizontalScrollBar(), SLOT(setValue(int)));
     }
+}
+
+void MainWindow::on_listWidget_NegPreview_itemDoubleClicked(QListWidgetItem *item)
+{
+    // open image preview
+    ipwindow->show();
+    ipwindow->raise();
+
+    // update window title
+    QModelIndex currentIndex = ui->listWidget_NegPreview->currentIndex();
+//    //qDebug() << "currentIndex.data(): " << currentIndex.data().toString().toStdString().c_str();
+    std::string windowTitle = "Image Preview " + currentIndex.data().toString().toStdString();
+    ipwindow->setWindowTitle(QString(windowTitle.c_str()));
+
+    // update image
+    int currentRow = ui->listWidget_NegPreview->row(item);
+    cv::Mat image = m_imagecache.getNegativeFull(currentRow);
+    ipwindow->setImage(image);
 }
