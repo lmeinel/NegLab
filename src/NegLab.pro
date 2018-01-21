@@ -1,9 +1,3 @@
-#-------------------------------------------------
-#
-# Project created by QtCreator 2016-06-19T14:10:57
-#
-#-------------------------------------------------
-
 QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
@@ -42,30 +36,53 @@ INCLUDEPATH += $$PWD/OpenCV/include/opencv
 
 RC_ICONS = icon.ico
 
-CONFIG(debug, debug|release) {
-    message("debug mode")
 
-    #LIBS += -L$$PWD/OpenCV/x64/vc12/lib
-    #LIBS += -lopencv_core2413d -lopencv_highgui2413d -lopencv_imgproc2413d
 
-    LIBS += $$PWD/OpenCV/x86/mingw/bin/libopencv_core340.dll
-    LIBS += $$PWD/OpenCV/x86/mingw/bin/libopencv_highgui340.dll
-    LIBS += $$PWD/OpenCV/x86/mingw/bin/libopencv_imgcodecs340.dll
-    LIBS += $$PWD/OpenCV/x86/mingw/bin/libopencv_imgproc340.dll
-    #LIBS += $$PWD/OpenCV/x86/mingw/bin/libopencv_features2d340.dll
-    #LIBS += $$PWD/OpenCV/x86/mingw/bin/libopencv_calib3d340.dll
+CONFIG(debug, debug|release){
+    message("Compiling in Debug mode")
 
+    # set output directory
     DESTDIR = $$OUT_PWD/debug
 
-    #message("INSTALL TO $$DESTDIR")
+    # detect compiler using platform scopes
+    win32-msvc* {
+        MSVC_VER = $$(VisualStudioVersion)
+        message("Microsoft Visual Studio Compiler $$MSVC_VER")
+
+        equals(MSVC_VER, 15.0){
+            LIBS += $$PWD/OpenCV/x64/vc15/lib/opencv_core340d.lib
+            LIBS += $$PWD/OpenCV/x64/vc15/lib/opencv_highgui340d.lib
+            LIBS += $$PWD/OpenCV/x64/vc15/lib/opencv_imgcodecs340d.lib
+            LIBS += $$PWD/OpenCV/x64/vc15/lib/opencv_imgproc340d.lib
+            #LIBS += $$PWD/OpenCV/x64/vc15/lib/opencv_features2d340d.lib
+            #LIBS += $$PWD/OpenCV/x64/vc15/lib/opencv_calib3d340d.lib
+
+            install_opencv.path   = $$DESTDIR
+            install_opencv.files  = $$PWD/OpenCV/x64/vc15/bin/opencv_core340d.dll \
+                                    $$PWD/OpenCV/x64/vc15/bin/opencv_highgui340d.dll \
+                                    $$PWD/OpenCV/x64/vc15/bin/opencv_imgcodecs340d.dll \
+                                    $$PWD/OpenCV/x64/vc15/bin/opencv_imgproc340d.dll
+        }
+    }
+
+    win32-g++{
+            LIBS += $$PWD/OpenCV/x86/mingw/bin/libopencv_core340d.dll
+            LIBS += $$PWD/OpenCV/x86/mingw/bin/libopencv_highgui340d.dll
+            LIBS += $$PWD/OpenCV/x86/mingw/bin/libopencv_imgcodecs340d.dll
+            LIBS += $$PWD/OpenCV/x86/mingw/bin/libopencv_imgproc340d.dll
+            #LIBS += $$PWD/OpenCV/x86/mingw/bin/libopencv_features2d340d.dll
+            #LIBS += $$PWD/OpenCV/x86/mingw/bin/libopencv_calib3d340d.dll
+
+            install_opencv.path   = $$DESTDIR
+            install_opencv.files  = $$PWD/OpenCV/x86/mingw/bin/libopencv_core340d.dll \
+                                    $$PWD/OpenCV/x86/mingw/bin/libopencv_highgui340d.dll \
+                                    $$PWD/OpenCV/x86/mingw/bin/libopencv_imgcodecs340d.dll \
+                                    $$PWD/OpenCV/x86/mingw/bin/libopencv_imgproc340d.dll
+    }
+
+
     install_exiftool.path   = $$DESTDIR
     install_exiftool.files  = $$PWD/ExifTool/exiftool.exe
-
-    install_opencv.path   = $$DESTDIR
-    install_opencv.files  = $$PWD/OpenCV/x86/mingw/bin/libopencv_core340.dll \
-                            $$PWD/OpenCV/x86/mingw/bin/libopencv_highgui340.dll \
-                            $$PWD/OpenCV/x86/mingw/bin/libopencv_imgcodecs340.dll \
-                            $$PWD/OpenCV/x86/mingw/bin/libopencv_imgproc340.dll
 
     install_qtlibs.path =   $$DESTDIR
     install_qtlibs.files =  $$[QT_INSTALL_BINS]/Qt5Cored.dll \
@@ -73,31 +90,50 @@ CONFIG(debug, debug|release) {
                             $$[QT_INSTALL_BINS]/Qt5Widgetsd.dll \
                             $$[QT_INSTALL_BINS]/Qt5PrintSupportd.dll
 }
-else {
-message("release mode")
+else{
+    message("Compiling in Release mode")
 
-    #LIBS += -L$$PWD/OpenCV/x86/mingw/lib
-    #LIBS += -lopencv_core340 -lopencv_highgui340 -lopencv_imgproc340
-
-    LIBS += $$PWD/OpenCV/x86/mingw/bin/libopencv_core340.dll
-    LIBS += $$PWD/OpenCV/x86/mingw/bin/libopencv_highgui340.dll
-    LIBS += $$PWD/OpenCV/x86/mingw/bin/libopencv_imgcodecs340.dll
-    LIBS += $$PWD/OpenCV/x86/mingw/bin/libopencv_imgproc340.dll
-    #LIBS += $$PWD/OpenCV/x86/mingw/bin/libopencv_features2d340.dll
-    #LIBS += $$PWD/OpenCV/x86/mingw/bin/libopencv_calib3d340.dll
-
+    # set output directory
     DESTDIR = $$OUT_PWD/release
 
+    # detect compiler using platform scopes
+    win32-msvc*{
+        MSVC_VER = $$(VisualStudioVersion)
+        message("Microsoft Visual Studio Compiler $$MSVC_VER")
 
-    #message("INSTALL TO $$DESTDIR")
+        equals(MSVC_VER, 15.0){
+            LIBS += $$PWD/OpenCV/x64/vc15/lib/opencv_core340.lib
+            LIBS += $$PWD/OpenCV/x64/vc15/lib/opencv_highgui340.lib
+            LIBS += $$PWD/OpenCV/x64/vc15/lib/opencv_imgcodecs340.lib
+            LIBS += $$PWD/OpenCV/x64/vc15/lib/opencv_imgproc340.lib
+            #LIBS += $$PWD/OpenCV/x64/vc15/lib/opencv_features2d340.lib
+            #LIBS += $$PWD/OpenCV/x64/vc15/lib/opencv_calib3d340.lib
+
+            install_opencv.path   = $$DESTDIR
+            install_opencv.files  = $$PWD/OpenCV/x64/vc15/bin/opencv_core340.dll \
+                                    $$PWD/OpenCV/x64/vc15/bin/opencv_highgui340.dll \
+                                    $$PWD/OpenCV/x64/vc15/bin/opencv_imgcodecs340.dll \
+                                    $$PWD/OpenCV/x64/vc15/bin/opencv_imgproc340.dll
+        }
+    }
+
+    win32-g++{
+            LIBS += $$PWD/OpenCV/x86/mingw/bin/libopencv_core340.dll
+            LIBS += $$PWD/OpenCV/x86/mingw/bin/libopencv_highgui340.dll
+            LIBS += $$PWD/OpenCV/x86/mingw/bin/libopencv_imgcodecs340.dll
+            LIBS += $$PWD/OpenCV/x86/mingw/bin/libopencv_imgproc340.dll
+            #LIBS += $$PWD/OpenCV/x86/mingw/bin/libopencv_features2d340.dll
+            #LIBS += $$PWD/OpenCV/x86/mingw/bin/libopencv_calib3d340.dll
+
+            install_opencv.path   = $$DESTDIR
+            install_opencv.files  = $$PWD/OpenCV/x86/mingw/bin/libopencv_core340.dll \
+                                    $$PWD/OpenCV/x86/mingw/bin/libopencv_highgui340.dll \
+                                    $$PWD/OpenCV/x86/mingw/bin/libopencv_imgcodecs340.dll \
+                                    $$PWD/OpenCV/x86/mingw/bin/libopencv_imgproc340.dll
+    }
+
     install_exiftool.path   = $$DESTDIR
     install_exiftool.files  = $$PWD/ExifTool/exiftool.exe
-
-    install_opencv.path   = $$DESTDIR
-    install_opencv.files  = $$PWD/OpenCV/x86/mingw/bin/libopencv_core340.dll \
-                            $$PWD/OpenCV/x86/mingw/bin/libopencv_highgui340.dll \
-                            $$PWD/OpenCV/x86/mingw/bin/libopencv_imgcodecs340.dll \
-                            $$PWD/OpenCV/x86/mingw/bin/libopencv_imgproc340.dll
 
     install_qtlibs.path =   $$DESTDIR
     install_qtlibs.files =  $$[QT_INSTALL_BINS]/Qt5Core.dll \
