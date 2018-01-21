@@ -11,26 +11,22 @@
 #
 #    Or you can search for specific OpenCV modules:
 #
-#    FIND_PACKAGE(OpenCV REQUIRED core highgui)
+#    FIND_PACKAGE(OpenCV REQUIRED core imgcodecs)
 #
 #    If the module is found then OPENCV_<MODULE>_FOUND is set to TRUE.
 #
 #    This file will define the following variables:
-#      - OpenCV_LIBS                     : The list of libraries to links against.
-#      - OpenCV_LIB_DIR                  : The directory(es) where lib files are. Calling LINK_DIRECTORIES
-#                                          with this path is NOT needed.
+#      - OpenCV_LIBS                     : The list of libraries to link against.
 #      - OpenCV_INCLUDE_DIRS             : The OpenCV include directories.
 #      - OpenCV_COMPUTE_CAPABILITIES     : The version of compute capability
-#      - OpenCV_ANDROID_NATIVE_API_LEVEL : Minimum required level of Android API
-#      - OpenCV_VERSION                  : The version of this OpenCV build. Example: "2.4.0"
-#      - OpenCV_VERSION_MAJOR            : Major version part of OpenCV_VERSION. Example: "2"
-#      - OpenCV_VERSION_MINOR            : Minor version part of OpenCV_VERSION. Example: "4"
-#      - OpenCV_VERSION_PATCH            : Patch version part of OpenCV_VERSION. Example: "0"
+#      - OpenCV_VERSION                  : The version of this OpenCV build: "3.4.0"
+#      - OpenCV_VERSION_MAJOR            : Major version part of OpenCV_VERSION: "3"
+#      - OpenCV_VERSION_MINOR            : Minor version part of OpenCV_VERSION: "4"
+#      - OpenCV_VERSION_PATCH            : Patch version part of OpenCV_VERSION: "0"
+#      - OpenCV_VERSION_STATUS           : Development status of this build: ""
 #
 #    Advanced variables:
 #      - OpenCV_SHARED
-#      - OpenCV_CONFIG_PATH
-#      - OpenCV_LIB_COMPONENTS
 #
 # ===================================================================================
 #
@@ -47,7 +43,7 @@ endif()
 
 if(NOT DEFINED OpenCV_STATIC)
   # look for global setting
-  if(NOT DEFINED BUILD_SHARED_LIBS OR BUILD_SHARED_LIBS)
+  if(BUILD_SHARED_LIBS)
     set(OpenCV_STATIC OFF)
   else()
     set(OpenCV_STATIC ON)
@@ -61,13 +57,16 @@ if(NOT DEFINED OpenCV_CUDA)
   endif()
 endif()
 
-if(MSVC)
+if(DEFINED OpenCV_ARCH AND DEFINED OpenCV_RUNTIME)
+  # custom overrided values
+elseif(MSVC)
   if(CMAKE_CL_64)
     set(OpenCV_ARCH x64)
-    set(OpenCV_TBB_ARCH intel64)
+  elseif((CMAKE_GENERATOR MATCHES "ARM") OR ("${arch_hint}" STREQUAL "ARM") OR (CMAKE_VS_EFFECTIVE_PLATFORMS MATCHES "ARM|arm"))
+    # see Modules/CmakeGenericSystem.cmake
+    set(OpenCV_ARCH ARM)
   else()
     set(OpenCV_ARCH x86)
-    set(OpenCV_TBB_ARCH ia32)
   endif()
   if(MSVC_VERSION EQUAL 1400)
     set(OpenCV_RUNTIME vc8)
@@ -81,6 +80,8 @@ if(MSVC)
     set(OpenCV_RUNTIME vc12)
   elseif(MSVC_VERSION EQUAL 1900)
     set(OpenCV_RUNTIME vc14)
+  elseif(MSVC_VERSION MATCHES "^191[0-9]$")
+    set(OpenCV_RUNTIME vc15)
   endif()
 elseif(MINGW)
   set(OpenCV_RUNTIME mingw)
@@ -96,17 +97,13 @@ elseif(MINGW)
   endif()
 endif()
 
-if(CMAKE_VERSION VERSION_GREATER 2.6.2)
-  unset(OpenCV_CONFIG_PATH CACHE)
-endif()
-
 if(NOT OpenCV_FIND_QUIETLY)
   message(STATUS "OpenCV ARCH: ${OpenCV_ARCH}")
   message(STATUS "OpenCV RUNTIME: ${OpenCV_RUNTIME}")
   message(STATUS "OpenCV STATIC: ${OpenCV_STATIC}")
 endif()
 
-get_filename_component(OpenCV_CONFIG_PATH "${CMAKE_CURRENT_LIST_FILE}" PATH CACHE)
+get_filename_component(OpenCV_CONFIG_PATH "${CMAKE_CURRENT_LIST_FILE}" PATH)
 if(OpenCV_RUNTIME AND OpenCV_ARCH)
   if(OpenCV_STATIC AND EXISTS "${OpenCV_CONFIG_PATH}/${OpenCV_ARCH}/${OpenCV_RUNTIME}/staticlib/OpenCVConfig.cmake")
     if(OpenCV_CUDA AND EXISTS "${OpenCV_CONFIG_PATH}/gpu/${OpenCV_ARCH}/${OpenCV_RUNTIME}/staticlib/OpenCVConfig.cmake")
@@ -124,27 +121,7 @@ if(OpenCV_RUNTIME AND OpenCV_ARCH)
 endif()
 
 if(OpenCV_LIB_PATH AND EXISTS "${OpenCV_LIB_PATH}/OpenCVConfig.cmake")
-  set(OpenCV_LIB_DIR_OPT "${OpenCV_LIB_PATH}" CACHE PATH "Path where release OpenCV libraries are located" FORCE)
-  set(OpenCV_LIB_DIR_DBG "${OpenCV_LIB_PATH}" CACHE PATH "Path where debug OpenCV libraries are located" FORCE)
-  set(OpenCV_3RDPARTY_LIB_DIR_OPT "${OpenCV_LIB_PATH}" CACHE PATH "Path where release 3rdpaty OpenCV dependencies are located" FORCE)
-  set(OpenCV_3RDPARTY_LIB_DIR_DBG "${OpenCV_LIB_PATH}" CACHE PATH "Path where debug 3rdpaty OpenCV dependencies are located" FORCE)
-
   include("${OpenCV_LIB_PATH}/OpenCVConfig.cmake")
-
-  if(OpenCV_CUDA)
-    set(_OpenCV_LIBS "")
-    foreach(_lib ${OpenCV_LIBS})
-      string(REPLACE "${OpenCV_CONFIG_PATH}/gpu/${OpenCV_ARCH}/${OpenCV_RUNTIME}" "${OpenCV_CONFIG_PATH}/${OpenCV_ARCH}/${OpenCV_RUNTIME}" _lib2 "${_lib}")
-      if(NOT EXISTS "${_lib}" AND EXISTS "${_lib2}")
-        list(APPEND _OpenCV_LIBS "${_lib2}")
-      else()
-        list(APPEND _OpenCV_LIBS "${_lib}")
-      endif()
-    endforeach()
-    set(OpenCV_LIBS ${_OpenCV_LIBS})
-  endif()
-  set(OpenCV_FOUND TRUE CACHE BOOL "" FORCE)
-  set(OPENCV_FOUND TRUE CACHE BOOL "" FORCE)
 
   if(NOT OpenCV_FIND_QUIETLY)
     message(STATUS "Found OpenCV ${OpenCV_VERSION} in ${OpenCV_LIB_PATH}")
@@ -161,10 +138,9 @@ if(OpenCV_LIB_PATH AND EXISTS "${OpenCV_LIB_PATH}/OpenCVConfig.cmake")
 else()
   if(NOT OpenCV_FIND_QUIETLY)
     message(WARNING
-"Found OpenCV Windows Pack but it has not binaries compatible with your configuration.
+"Found OpenCV Windows Pack but it has no binaries compatible with your configuration.
 You should manually point CMake variable OpenCV_DIR to your build of OpenCV library."
     )
   endif()
-  set(OpenCV_FOUND FALSE CACHE BOOL "" FORCE)
-  set(OPENCV_FOUND FALSE CACHE BOOL "" FORCE)
+  set(OpenCV_FOUND FALSE)
 endif()
