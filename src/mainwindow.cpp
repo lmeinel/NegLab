@@ -243,6 +243,15 @@ void MainWindow::on_pushButton_Invert_clicked()
 
             // store to image cache
             m_imagecache.addNegative(matNegFull, matNegScaled);
+
+            // convert to Qimage
+            QImage thumbNeg = convertMat2QImage(matNegScaled);
+
+            // add thumb to preview list
+            QListWidgetItem *itmNeg = new QListWidgetItem(fileNeg);
+            itmNeg->setIcon(QPixmap::fromImage(thumbNeg));
+            ui->listWidget_NegPreview->addItem(itmNeg);
+            qApp->processEvents();
         }
         else
         {
@@ -251,15 +260,6 @@ void MainWindow::on_pushButton_Invert_clicked()
             scale = matNegFull.rows / 100.0;
             matNegScaled = m_imagecache.getNegativeThumb(i);
         }
-
-        // convert to Qimage
-        QImage thumbNeg = convertMat2QImage(matNegScaled);
-
-        // add thumb to preview list
-        QListWidgetItem *itmNeg = new QListWidgetItem(fileNeg);
-        itmNeg->setIcon(QPixmap::fromImage(thumbNeg));
-        ui->listWidget_NegPreview->addItem(itmNeg);
-        qApp->processEvents();
 
         // invert
         cv::Mat matPosFull = m_inverter.invert(matNegFull);
@@ -453,14 +453,28 @@ void MainWindow::on_listWidget_NegPreview_itemDoubleClicked(QListWidgetItem *ite
     ipwindow->show();
     ipwindow->raise();
 
-    // update window title
+    // get filename
     QModelIndex currentIndex = ui->listWidget_NegPreview->currentIndex();
-//    //qDebug() << "currentIndex.data(): " << currentIndex.data().toString().toStdString().c_str();
-    std::string windowTitle = "Image Preview " + currentIndex.data().toString().toStdString();
-    ipwindow->setWindowTitle(QString(windowTitle.c_str()));
+    std::string filename = currentIndex.data().toString().toStdString();
 
     // update image
     int currentRow = ui->listWidget_NegPreview->row(item);
     cv::Mat image = m_imagecache.getNegativeFull(currentRow);
-    ipwindow->setImage(image);
+    ipwindow->setImage(image, filename);
+}
+
+void MainWindow::on_listWidget_PosPreview_itemDoubleClicked(QListWidgetItem *item)
+{
+    // open image preview
+    ipwindow->show();
+    ipwindow->raise();
+
+    // get filename
+    QModelIndex currentIndex = ui->listWidget_PosPreview->currentIndex();
+    std::string filename = currentIndex.data().toString().toStdString();
+
+    // update image
+    int currentRow = ui->listWidget_PosPreview->row(item);
+    cv::Mat image = m_imagecache.getPositiveFull(currentRow);
+    ipwindow->setImage(image, filename);
 }

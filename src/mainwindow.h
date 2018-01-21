@@ -25,36 +25,22 @@ public:
 
 private slots:
     void on_pushButton_BrowseNeg_clicked();
-
     void on_pushButton_BrowsePos_clicked();
-
     void on_lineEdit_NegPath_editingFinished();
-
     void on_lineEdit_PosPath_editingFinished();
-
     void on_pushButton_Preview_clicked();
-
     void on_lineEdit_PosPrefix_editingFinished();
-
     void on_comboBox_PosType_currentTextChanged(const QString &arg1);
-
     void on_lineEdit_NegFilter_editingFinished();
-
     void on_pushButton_Invert_clicked();
-
     void on_comboBox_Mode_currentTextChanged(const QString &arg1);
-
     void on_spinBox_NegHdVal_valueChanged(int arg1);
-
     void on_spinBox_NegLdVal_valueChanged(int arg1);
-
     void on_spinBox_PosWhiteVal_valueChanged(int arg1);
-
     void on_spinBox_PosBlackVal_valueChanged(int arg1);
-
     void on_checkBox_syncPrevScrollbar_clicked(bool checked);
-
     void on_listWidget_NegPreview_itemDoubleClicked(QListWidgetItem *item);
+    void on_listWidget_PosPreview_itemDoubleClicked(QListWidgetItem *item);
 
 private:
     QImage convertMat2QImage(const cv::Mat &input);

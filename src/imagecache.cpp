@@ -48,3 +48,13 @@ cv::Mat ImageCache::getNegativeThumb(int idx)
 {
     return m_negativesThumb[idx];
 }
+
+cv::Mat ImageCache::getPositiveFull(int idx)
+{
+   return m_positivesFull[idx];
+}
+
+cv::Mat ImageCache::getPositiveThumb(int idx)
+{
+    return m_positivesThumb[idx];
+}
