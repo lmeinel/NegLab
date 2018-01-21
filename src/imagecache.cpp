@@ -28,7 +28,7 @@ int ImageCache::addNegative(const cv::Mat &matFull, const cv::Mat &matThumb)
     m_negativesFull.push_back(matFull);
     m_negativesThumb.push_back(matThumb);
 
-    return m_positivesFull.size()-1;
+    return static_cast<int>(m_positivesFull.size())-1;
 }
 
 int ImageCache::addPositive(const cv::Mat &matFull, const cv::Mat &matThumb)
@@ -36,7 +36,7 @@ int ImageCache::addPositive(const cv::Mat &matFull, const cv::Mat &matThumb)
     m_positivesFull.push_back(matFull);
     m_positivesThumb.push_back(matThumb);
 
-    return m_positivesFull.size()-1;
+    return static_cast<int>(m_positivesFull.size())-1;
 }
 
 cv::Mat ImageCache::getNegativeFull(int idx)
