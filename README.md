@@ -14,6 +14,8 @@ The resulting 16-bit TIFF image can be processed by digital photo editing progra
 - Batch processing of whole analog films
 - Image preview view
 
+Download the [latest release](https://github.com/lmeinel/NegLab/releases).
+
 
 ## Build NegLab
 This repository is prepared to be easily built under Windows with <a href="https://visualstudio.microsoft.com/downloads/" target="_blank">Visual Studio 2017 Compiler</a> using Qt Creator.
